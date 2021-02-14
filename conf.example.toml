@@ -1,0 +1,9 @@
+# Config for the MySQL server
+[database]
+host = "example.com"
+username = "osutrack"
+password = "secret-password"
+database = "osutrack"
+
+[webserver]
+port = 8080 # port the webserver will listen on
