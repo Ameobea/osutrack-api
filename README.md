@@ -144,17 +144,53 @@ If successful, returns an array of all recorded hiscores for the user in the sel
 If successful, returns the best (lowest) global rank and accuracy for the user:
 
 ```
-{
+[{
   "best_global_rank": 7024,
   "best_accuracy": 98.3232
-}
+}]
 ```
 
 If user not found or no updates exist for the user, returns:
 
 ```
-{
+[{
   "best_global_rank": null,
   "best_accuracy": null
-}
+}]
+```
+
+### Get the best plays by pp for all users in a given mode
+
+`GET https://osutrack-api.ameo.dev/bestplays?mode={mode}&from={from}&to={to}&limit={limit}
+
+* `mode` is the gamemode you'd like to retrieve best plays for; 0=osu!, 1=taiko, 2=ctb, 3=mania
+* `from` is optional, but if provided it is the start date of scores you'd like to retrieve in the format `YYYY-MM-DD` like `2020-01-01`
+* `to` is optional, but if provided it is the end date of scores you'd like to retrieve in the format `YYYY-MM-DD` like `2021-01-01`
+* `limit` is how many scores you want to return, an optional number from 1 to 10000.  Scores are returned in descending order by pp value.
+
+#### Returns
+
+```
+
+  {
+    "user": 6447454,
+    "beatmap_id": 111680,
+    "score": 25571304,
+    "pp": 1144.15,
+    "mods": 88,
+    "rank": "A",
+    "score_time": "2021-01-07T11:16:59.000Z",
+    "update_time": "2021-01-16T14:59:17.000Z"
+  },
+  {
+    "user": 6447454,
+    "beatmap_id": 1842043,
+    "score": 63633373,
+    "pp": 1092.05,
+    "mods": 72,
+    "rank": "SH",
+    "score_time": "2021-01-12T07:25:34.000Z",
+    "update_time": "2021-01-16T14:59:17.000Z"
+  }
+]
 ```

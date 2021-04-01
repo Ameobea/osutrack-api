@@ -2,7 +2,6 @@ import * as Sentry from '@sentry/node';
 
 import { loadConf } from './conf';
 import { initExpress } from './webserver';
-
 import { createConnPool } from './dbUtil';
 
 Sentry.init({

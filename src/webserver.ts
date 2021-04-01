@@ -30,6 +30,22 @@ const validateMode = (
   return +mode;
 };
 
+const validateLimit = (
+  limit: undefined | string | string[] | { [key: string]: any }
+): number | undefined => {
+  if (limit === undefined) {
+    return 100;
+  }
+  if (typeof limit !== 'string') {
+    return undefined;
+  }
+  const parsed = +limit;
+  if (Math.round(parsed) !== parsed || parsed <= 0 || parsed > 10_000) {
+    return undefined;
+  }
+  return parsed;
+};
+
 const validateDate = (
   date: undefined | string | string[] | { [key: string]: any }
 ): Date | undefined => {
@@ -51,6 +67,13 @@ const invalidMode = (res: Response<any>) =>
     .status(400)
     .send(
       'Invalid or missing `mode` param; must be a valid osu! game mode; 0=osu!, 1=taiko, 2=ctb, 3=mania'
+    );
+
+const invalidLimit = (res: Response<any>) =>
+  res
+    .status(400)
+    .send(
+      'Invalid `limit` param; must be a non-zero integer greater than 0 and less than or equal to 10000'
     );
 
 const userNotFound = (res: Response<any>) =>
@@ -170,6 +193,35 @@ export const initExpress = (pool: mysql.Pool) => {
         pool,
         'SELECT MIN(pp_rank) AS best_global_rank, MAX(accuracy) as best_accuracy FROM `updates` WHERE user = ? AND mode = ?',
         [parsedUserID, parsedMode]
+      );
+      res.status(200).json(queryRes);
+    } catch (err) {
+      console.error('DB error: ', err);
+      res.sendStatus(500);
+    }
+  });
+
+  app.get('/bestplays', async (req, res) => {
+    const { mode, from: rawFrom, to: rawTo, limit: rawLimit } = req.query;
+
+    const parsedMode = validateMode(mode);
+    if (parsedMode === undefined) {
+      return invalidMode(res);
+    }
+
+    const limit = validateLimit(rawLimit);
+    if (limit === undefined) {
+      return invalidLimit(res);
+    }
+
+    const from = validateDate(rawFrom);
+    const to = validateDate(rawTo);
+
+    try {
+      const queryRes = await query<Update>(
+        pool,
+        'SELECT user, beatmap_id, score, pp, mods, rank, score_time, update_time FROM `hiscore_updates` WHERE `mode` = ? AND `score_time` >= ? AND `score_time` <= ? ORDER BY `pp` DESC LIMIT ?',
+        [parsedMode, from ?? new Date('2000-01-01'), to ?? new Date('2800-01-01'), limit]
       );
       res.status(200).json(queryRes);
     } catch (err) {
