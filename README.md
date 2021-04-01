@@ -161,7 +161,7 @@ If user not found or no updates exist for the user, returns:
 
 ### Get the best plays by pp for all users in a given mode
 
-`GET https://osutrack-api.ameo.dev/bestplays?mode={mode}&from={from}&to={to}&limit={limit}
+`GET https://osutrack-api.ameo.dev/bestplays?mode={mode}&from={from}&to={to}&limit={limit}`
 
 * `mode` is the gamemode you'd like to retrieve best plays for; 0=osu!, 1=taiko, 2=ctb, 3=mania
 * `from` is optional, but if provided it is the start date of scores you'd like to retrieve in the format `YYYY-MM-DD` like `2020-01-01`
