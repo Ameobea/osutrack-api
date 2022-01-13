@@ -3,7 +3,7 @@ import mysql from 'mysql';
 import fetch from 'node-fetch';
 
 import { CONF } from './conf';
-import { getUser, query, Update } from './dbUtil';
+import { query, Update } from './dbUtil';
 
 const validateUser = (
   user: undefined | string | string[] | { [key: string]: any }
@@ -76,9 +76,6 @@ const invalidLimit = (res: Response<any>) =>
       'Invalid `limit` param; must be a non-zero integer greater than 0 and less than or equal to 10000'
     );
 
-const userNotFound = (res: Response<any>) =>
-  res.status(404).send('User not found; check the user id provided');
-
 export const initExpress = (pool: mysql.Pool) => {
   const app = express();
 
@@ -94,16 +91,18 @@ export const initExpress = (pool: mysql.Pool) => {
       return invalidMode(res);
     }
 
-    const user = await getUser(pool, parsedUserID);
-    if (!user) {
-      return userNotFound(res);
-    }
-
     try {
       // Let the existing osu!track API endpoint handle this
-      const proxyRes = await fetch(
-        `https://ameobea.me/osutrack/api/get_changes.php?mode=${parsedMode}&user=${user.username}`
-      ).then(res => res.text());
+      const rawProxyRes = await fetch(
+        `https://ameobea.me/osutrack/api/get_changes.php?mode=${parsedMode}&id=${parsedUserID}`
+      );
+      if (rawProxyRes.status === 404) {
+        return res.status(404).json({ error: 'User not found' });
+      } else if (rawProxyRes.status !== 200) {
+        throw await rawProxyRes.text();
+      }
+      const proxyRes = await rawProxyRes.text();
+
       try {
         const parsed = JSON.parse(proxyRes);
         res.status(200).json(parsed);

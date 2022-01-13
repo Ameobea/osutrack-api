@@ -113,16 +113,6 @@ export const commit = (conn: mysql.PoolConnection): Promise<void> =>
     })
   );
 
-export interface User {
-  osu_id: number;
-  username: string;
-}
-
-export const getUser = async (pool: mysql.Pool, userID: number): Promise<User | undefined> => {
-  const user = await query<User>(pool, 'SELECT * FROM `users` WHERE osu_id = ?', [userID]);
-  return user[0];
-};
-
 export interface Update {
   count300: number;
   count100: number;
