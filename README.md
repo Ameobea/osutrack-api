@@ -6,7 +6,7 @@ Exposes an API to [osu!track](https://ameobea.me/osutrack/) that allows data to 
 
 Anyone is free to use the API for any purpose, but please keep your traffic reasonable.  The one thing I request is that you do not use the API to scrape the full osu!track database or mass-update users.
 
-If you've got a question about a particular use-case or need data or functionality that this API doesn't provide, you can join the osu!track developers Discord: https://discord.gg/uawR5Ccc  Feel free to @ me there (Ameo#0493) and I'll answer any questions you have or help out if I can.
+If you've got a question about a particular use-case or need data or functionality that this API doesn't provide, you can join the osu!track developers Discord: https://discord.gg/gjzBzCVFmy  Feel free to @ me there (@ameo) and I'll answer any questions you have or help out if I can.
 
 If you encounter any bugs or issues with the API, please do the same!
 
