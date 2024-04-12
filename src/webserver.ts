@@ -188,10 +188,32 @@ export const initExpress = (pool: mysql.Pool) => {
       const queryRes = await query<{
         best_global_rank: number | null | undefined;
         best_accuracy: number | null | undefined;
+        best_rank_timestamp: Date | null | undefined;
+        best_acc_timestamp: Date | null | undefined;
       }>(
         pool,
-        'SELECT MIN(pp_rank) AS best_global_rank, MAX(accuracy) as best_accuracy FROM `updates` WHERE user = ? AND mode = ?',
-        [parsedUserID, parsedMode]
+        `
+            SELECT
+                MIN(pp_rank) AS best_global_rank,
+                (SELECT MAX(timestamp) FROM updates WHERE user = ? AND mode = ? AND pp_rank = (SELECT MIN(pp_rank) FROM updates WHERE user = ? AND mode = ?)) AS best_rank_timestamp,
+                MAX(accuracy) AS best_accuracy,
+                (SELECT MAX(timestamp) FROM updates WHERE user = ? AND mode = ? AND accuracy = (SELECT MAX(accuracy) FROM updates WHERE user = ? AND mode = ?)) AS best_acc_timestamp
+            FROM
+                updates
+            WHERE
+                user = ? AND mode = ?`,
+        [
+          parsedUserID,
+          parsedMode,
+          parsedUserID,
+          parsedMode,
+          parsedUserID,
+          parsedMode,
+          parsedUserID,
+          parsedMode,
+          parsedUserID,
+          parsedMode,
+        ]
       );
       res.status(200).json(queryRes);
     } catch (err) {

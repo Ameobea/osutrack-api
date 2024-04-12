@@ -141,12 +141,14 @@ If successful, returns an array of all recorded hiscores for the user in the sel
 
 #### Returns
 
-If successful, returns the best (lowest) global rank and accuracy for the user:
+If successful, returns the best (lowest) global rank and accuracy for the user along with the timestamps at which they were at their best values:
 
 ```
 [{
-  "best_global_rank": 7024,
-  "best_accuracy": 98.3232
+  "best_global_rank": 7381,
+  "best_rank_timestamp": "2015-04-24T12:44:15.000Z",
+  "best_accuracy": 99.46027374267578,
+  "best_acc_timestamp": "2024-03-14T01:06:02.000Z"
 }]
 ```
 
@@ -155,7 +157,9 @@ If user not found or no updates exist for the user, returns:
 ```
 [{
   "best_global_rank": null,
-  "best_accuracy": null
+  "best_rank_timestamp": null,
+  "best_accuracy": null,
+  "best_acc_timestamp": null
 }]
 ```
 
