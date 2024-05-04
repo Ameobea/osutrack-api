@@ -10,7 +10,6 @@
     "forceConsistentCasingInFileNames": true,
     "strictFunctionTypes": false, // This is required by Jantix
     "strict": true,
-    "noStrictGenericChecks": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "suppressImplicitAnyIndexErrors": false,

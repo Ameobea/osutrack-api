@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint src/**/*",
-    "start": "NODE_PATH=./dist node dist/src/index.js",
+    "start": "tsc && NODE_PATH=./dist node dist/src/index.js",
     "prettier": "prettier --write src/**/*"
   },
   "dependencies": {

@@ -107,12 +107,13 @@ If successful, returns an array of updates for the user in the selected mode lik
 
 ### Get all recorded hiscores for user
 
-`GET https://osutrack-api.ameo.dev/hiscores?user={user}&mode={mode}&from={from}&to={to}`
+`GET https://osutrack-api.ameo.dev/hiscores?user={user}&mode={mode}&from={from}&to={to}&userMode={userMode}`
 
-* `user` is the user ID of the user you'd like to update
-* `mode` is the gamemode you'd like to update; 0=osu!, 1=taiko, 2=ctb, 3=mania
-* `from` is optional, but if provided it is the start date of updates you'd like to retrieve in the format `YYYY-MM-DD` like `2020-01-01`
-* `to` is optional, but if provided it is the end date of updates you'd like to retrieve in the format `YYYY-MM-DD` like `2021-01-01`
+* `user` is the ID (default) or username of the user for which to return hiscores.  See `userMode` for details
+* `mode` is the gamemode you'd like to fetch hiscores for; 0=osu!, 1=taiko, 2=ctb, 3=mania
+* `from` is optional, but if provided it is the start date of hiscores you'd like to retrieve in the format `YYYY-MM-DD` like `2020-01-01`
+* `to` is optional, but if provided it is the end date of hiscores you'd like to retrieve in the format `YYYY-MM-DD` like `2021-01-01`
+* `userMode` is optional can be one of either `id` or `username`.  It defaults to `id`.  It determines if `user` is interpreted as an ID or as a username.
 
 #### Returns
 

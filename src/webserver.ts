@@ -59,8 +59,69 @@ const validateDate = (
   return d;
 };
 
+enum UserMode {
+  ID,
+  Username,
+}
+
+const validateUserMode = (
+  userMode: undefined | string | string[] | { [key: string]: any }
+): UserMode => {
+  if (typeof userMode !== 'string') {
+    return UserMode.ID;
+  }
+  switch (userMode) {
+    case 'id':
+      return UserMode.ID;
+    case 'username':
+      return UserMode.Username;
+    default:
+      return UserMode.ID;
+  }
+};
+
+const getIDFromUsername = async (
+  pool: mysql.Pool,
+  username: string,
+  gameMode: number
+): Promise<{ didUpdate: boolean; id: number } | undefined> => {
+  const queryRes = await query<{ osu_id: number }>(
+    pool,
+    'SELECT osu_id FROM `users` WHERE `username` = ?',
+    [username]
+  );
+  if (queryRes.length === 1) {
+    return { didUpdate: false, id: queryRes[0].osu_id };
+  }
+
+  try {
+    console.log(`User ${username} not found in DB; fetching from base osu!track API...`);
+    const res = await fetch(
+      `https://ameobea.me/osutrack/api/get_user.php?user=${username}&mode=${gameMode}`
+    );
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('Failed to fetch from base osu!track API: ', text);
+      return undefined;
+    }
+
+    const resJson = await res.json();
+    if (!resJson.exists) {
+      return undefined;
+    }
+    return { didUpdate: true, id: parseInt(resJson.user, 10) };
+  } catch (err) {
+    console.error('Failed to fetch from base osu!track API: ', err);
+    return undefined;
+  }
+};
+
 const invalidUser = (res: Response<any>) =>
-  res.status(400).send('Invalid or missing `user` param; must be a valid osu! user ID');
+  res
+    .status(400)
+    .send(
+      'Invalid or missing `user` param; must be a valid osu! user ID (default) or username (if `userMode` is set to `username`)'
+    );
 
 const invalidMode = (res: Response<any>) =>
   res
@@ -145,14 +206,40 @@ export const initExpress = (pool: mysql.Pool) => {
   });
 
   app.get('/hiscores', async (req, res) => {
-    const { user: rawUserID, mode, from: rawFrom, to: rawTo } = req.query;
+    const {
+      user: rawUser,
+      mode: gameMode,
+      from: rawFrom,
+      to: rawTo,
+      userMode: rawUserMode,
+    } = req.query;
 
-    const parsedUserID = validateUser(rawUserID);
+    const parsedGameMode = validateMode(gameMode) ?? 0;
+    const userMode = validateUserMode(rawUserMode);
+    let didUpdate = false;
+    const parsedUserID = await (async () => {
+      if (userMode === undefined || userMode === UserMode.ID) {
+        return validateUser(rawUser);
+      }
+      if (typeof rawUser !== 'string') {
+        return undefined;
+      }
+      if (userMode === UserMode.Username) {
+        const userIDRes = await getIDFromUsername(pool, rawUser, parsedGameMode);
+        if (!userIDRes) {
+          return undefined;
+        }
+        didUpdate = userIDRes.didUpdate;
+        return userIDRes.id;
+      }
+
+      return undefined;
+    })();
     if (!parsedUserID) {
       return invalidUser(res);
     }
-    const parsedMode = validateMode(mode);
-    if (parsedMode === undefined) {
+
+    if (parsedGameMode === undefined) {
       return invalidMode(res);
     }
 
@@ -160,11 +247,28 @@ export const initExpress = (pool: mysql.Pool) => {
     const to = validateDate(rawTo);
 
     try {
-      const queryRes = await query<Update>(
-        pool,
-        'SELECT beatmap_id, score, pp, mods, rank, score_time, update_time FROM `hiscore_updates` WHERE `mode` = ? AND user = ? AND `score_time` >= ? AND `score_time` <= ? ORDER BY `score_time` ASC',
-        [parsedMode, parsedUserID, from ?? new Date('2000-01-01'), to ?? new Date('2800-01-01')]
-      );
+      const getHiscoresFromDB = () =>
+        query<Update>(
+          pool,
+          'SELECT beatmap_id, score, pp, mods, rank, score_time, update_time FROM `hiscore_updates` WHERE `mode` = ? AND user = ? AND `score_time` >= ? AND `score_time` <= ? ORDER BY `score_time` ASC',
+          [
+            parsedGameMode,
+            parsedUserID,
+            from ?? new Date('2000-01-01'),
+            to ?? new Date('2800-01-01'),
+          ]
+        );
+      let queryRes = await getHiscoresFromDB();
+      if (!didUpdate && queryRes.length === 0) {
+        console.log(
+          'Empty query result and `updateIfEmpty` is set to true; updating user id=' + parsedUserID
+        );
+        await fetch(
+          `https://ameobea.me/osutrack/api/get_changes.php?mode=${parsedGameMode}&id=${parsedUserID}`
+        );
+        queryRes = await getHiscoresFromDB();
+      }
+
       res.status(200).json(queryRes);
     } catch (err) {
       console.error('DB error: ', err);
