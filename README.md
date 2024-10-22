@@ -75,8 +75,8 @@ This endpoint will return the difference in stats since the last update if succe
 
 `GET https://osutrack-api.ameo.dev/stats_history?user={user}&mode={mode}&from={from}&to={to}`
 
-* `user` is the user ID of the user you'd like to update
-* `mode` is the gamemode you'd like to update; 0=osu!, 1=taiko, 2=ctb, 3=mania
+* `user` is the user ID of the user for which to retrieve updates
+* `mode` is the gamemode you'd like to retrieve updates for; 0=osu!, 1=taiko, 2=ctb, 3=mania
 * `from` is optional, but if provided it is the start date of updates you'd like to retrieve in the format `YYYY-MM-DD` like `2020-01-01`
 * `to` is optional, but if provided it is the end date of updates you'd like to retrieve in the format `YYYY-MM-DD` like `2021-01-01`
 
@@ -137,8 +137,8 @@ If successful, returns an array of all recorded hiscores for the user in the sel
 
 `GET https://osutrack-api.ameo.dev/peak?user={user}&mode={mode}`
 
-* `user` is the user ID of the user you'd like to update
-* `mode` is the gamemode you'd like to update; 0=osu!, 1=taiko, 2=ctb, 3=mania
+* `user` is the user ID of the user you'd like to get data for
+* `mode` is the gamemode you'd like to get data for; 0=osu!, 1=taiko, 2=ctb, 3=mania
 
 #### Returns
 

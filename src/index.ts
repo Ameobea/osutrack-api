@@ -5,8 +5,7 @@ import { initExpress } from './webserver';
 import { createConnPool } from './dbUtil';
 
 Sentry.init({
-  dsn: 'https://24c652a768df4eb096ad392b0ccc6bce@sentry.ameo.design/7',
-  tracesSampleRate: 0.1,
+  dsn: 'https://5ff5ab6141e202e155c2c3a5055c7b9d@sentry.ameo.design/13',
 });
 
 const init = async () => {
