@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 
 import { CONF } from './conf';
 import { query, Update } from './dbUtil';
+import { buildRateLimiters } from './rateLimit';
 
 const validateUser = (
   user: undefined | string | string[] | { [key: string]: any }
@@ -138,9 +139,12 @@ const invalidLimit = (res: Response<any>) =>
     );
 
 export const initExpress = (pool: mysql.Pool) => {
-  const app = express();
+  const { dbRateLimiter, updateRateLimiter } = buildRateLimiters(CONF);
 
-  app.post('/update', async (req, res) => {
+  const app = express();
+  app.set('trust proxy', 1);
+
+  app.post('/update', updateRateLimiter, async (req, res) => {
     const { user: rawUserID, mode } = req.query;
 
     const parsedUserID = validateUser(rawUserID);
@@ -177,7 +181,7 @@ export const initExpress = (pool: mysql.Pool) => {
     }
   });
 
-  app.get('/stats_history', async (req, res) => {
+  app.get('/stats_history', dbRateLimiter, async (req, res) => {
     const { user: rawUserID, mode, from: rawFrom, to: rawTo } = req.query;
 
     const parsedUserID = validateUser(rawUserID);
@@ -205,7 +209,7 @@ export const initExpress = (pool: mysql.Pool) => {
     }
   });
 
-  app.get('/hiscores', async (req, res) => {
+  app.get('/hiscores', updateRateLimiter, async (req, res) => {
     const {
       user: rawUser,
       mode: gameMode,
@@ -276,7 +280,7 @@ export const initExpress = (pool: mysql.Pool) => {
     }
   });
 
-  app.get('/peak', async (req, res) => {
+  app.get('/peak', dbRateLimiter, async (req, res) => {
     const { user: rawUserID, mode } = req.query;
 
     const parsedUserID = validateUser(rawUserID);
@@ -326,7 +330,7 @@ export const initExpress = (pool: mysql.Pool) => {
     }
   });
 
-  app.get('/bestplays', async (req, res) => {
+  app.get('/bestplays', dbRateLimiter, async (req, res) => {
     const { mode, from: rawFrom, to: rawTo, limit: rawLimit } = req.query;
 
     const parsedMode = validateMode(mode);

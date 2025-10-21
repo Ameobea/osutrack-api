@@ -19,10 +19,12 @@
     "express": "^4.17.1",
     "mysql": "^2.18.1",
     "node-fetch": "^2.6.1",
-    "toml": "^3.0.0"
+    "toml": "^3.0.0",
+    "express-rate-limit": "^5.2.6"
   },
   "devDependencies": {
     "@types/express": "^4.17.11",
+    "@types/express-rate-limit": "^5.1.1",
     "@types/mysql": "^2.15.17",
     "@types/node": "^14.14.28",
     "@types/node-fetch": "^2.5.8",

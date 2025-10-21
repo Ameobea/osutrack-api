@@ -13,9 +13,17 @@ interface WebserverConf {
   port: number;
 }
 
+interface RateLimitConf {
+  db_ratelimit_window_ms: number;
+  db_ratelimit_max_requests: number;
+  update_ratelimit_window_ms: number;
+  update_ratelimit_max_requests: number;
+}
+
 export interface Conf {
   database: DbConf;
   webserver: WebserverConf;
+  rate_limit?: RateLimitConf;
 }
 
 export let CONF: Conf = null as any;

@@ -4,11 +4,28 @@ Exposes an API to [osu!track](https://ameobea.me/osutrack/) that allows data to 
 
 ## Using the API
 
-Anyone is free to use the API for any purpose, but please keep your traffic reasonable.  The one thing I request is that you do not use the API to scrape the full osu!track database or mass-update users.
+Anyone is free to use the API for any purpose, but please keep your traffic reasonable.
+
+This API must NOT be used to mass-scrape data from the osu!track database or attempt to serve as a proxy to the official osu! API.  If you need bulk osu!track data for a project, get in touch with me at <casey@cprimozic.net>
+
+It's OK to set up a bot or periodic job to auto-update your own user's stats on osu!track.  However, please keep the refresh interval reasonable.  Any auto-update rate more frequent than once ever 15 minutes (even though rate limits allow higher than this) may result in your IP getting temporarily blocked.
 
 If you've got a question about a particular use-case or need data or functionality that this API doesn't provide, you can join the osu!track developers Discord: https://discord.gg/gjzBzCVFmy  Feel free to @ me there (@ameo) and I'll answer any questions you have or help out if I can.
 
-If you encounter any bugs or issues with the API, please do the same!
+If you encounter any bugs or issues with the API, let me know as well!
+
+## Rate Limiting
+
+There is some rate-limiting on this API.  The limits are applied per IP address and are pretty generous.
+
+There are two classes for rate limits:
+
+- **Database**: For endpoints that only read from the local database.  The limit is **600 requests/minute**.
+- **Update**: For endpoints that may trigger a request to the official osu! API and/or write new updates to the osu!track database.  The limit is **5 requests/minute**.
+
+The request count is shared for all endpoints of the same class.
+
+If a rate limit is exceeded, the API will return a HTTP 429 error and a `Retry-After` header indicating how long you must wait before making another request.
 
 ## Endpoints
 
@@ -17,6 +34,8 @@ The API is reachable at: https://osutrack-api.ameo.dev/
 ### Update User
 
 `POST https://osutrack-api.ameo.dev/update?user={user}&mode={mode}`
+
+*Rate limit class: **Update** (5 requests/minute)*
 
 * `user` is the user ID of the user you'd like to update
 * `mode` is the gamemode you'd like to update; 0=osu!, 1=taiko, 2=ctb, 3=mania
@@ -75,6 +94,8 @@ This endpoint will return the difference in stats since the last update if succe
 
 `GET https://osutrack-api.ameo.dev/stats_history?user={user}&mode={mode}&from={from}&to={to}`
 
+*Rate limit class: **Database** (600 requests/minute)*
+
 * `user` is the user ID of the user for which to retrieve updates
 * `mode` is the gamemode you'd like to retrieve updates for; 0=osu!, 1=taiko, 2=ctb, 3=mania
 * `from` is optional, but if provided it is the start date of updates you'd like to retrieve in the format `YYYY-MM-DD` like `2020-01-01`
@@ -109,6 +130,8 @@ If successful, returns an array of updates for the user in the selected mode lik
 
 `GET https://osutrack-api.ameo.dev/hiscores?user={user}&mode={mode}&from={from}&to={to}&userMode={userMode}`
 
+*Rate limit class: **Update** (5 requests/minute)*
+
 * `user` is the ID (default) or username of the user for which to return hiscores.  See `userMode` for details
 * `mode` is the gamemode you'd like to fetch hiscores for; 0=osu!, 1=taiko, 2=ctb, 3=mania
 * `from` is optional, but if provided it is the start date of hiscores you'd like to retrieve in the format `YYYY-MM-DD` like `2020-01-01`
@@ -136,6 +159,8 @@ If successful, returns an array of all recorded hiscores for the user in the sel
 ### Get the peak rank + accuracy for a user
 
 `GET https://osutrack-api.ameo.dev/peak?user={user}&mode={mode}`
+
+*Rate limit class: **Database** (600 requests/minute)*
 
 * `user` is the user ID of the user you'd like to get data for
 * `mode` is the gamemode you'd like to get data for; 0=osu!, 1=taiko, 2=ctb, 3=mania
@@ -168,6 +193,8 @@ If user not found or no updates exist for the user, returns:
 
 `GET https://osutrack-api.ameo.dev/bestplays?mode={mode}&from={from}&to={to}&limit={limit}`
 
+*Rate limit class: **Database** (600 requests/minute)*
+
 * `mode` is the gamemode you'd like to retrieve best plays for; 0=osu!, 1=taiko, 2=ctb, 3=mania
 * `from` is optional, but if provided it is the start date of scores you'd like to retrieve in the format `YYYY-MM-DD` like `2020-01-01`
 * `to` is optional, but if provided it is the end date of scores you'd like to retrieve in the format `YYYY-MM-DD` like `2021-01-01`
@@ -176,7 +203,6 @@ If user not found or no updates exist for the user, returns:
 #### Returns
 
 ```
-
   {
     "user": 6447454,
     "beatmap_id": 111680,

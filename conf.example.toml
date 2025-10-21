@@ -6,4 +6,10 @@ password = "secret-password"
 database = "osutrack"
 
 [webserver]
-port = 8080 # port the webserver will listen on
+port = 8080
+
+[rate_limit]
+db_ratelimit_window_ms = 60000
+db_ratelimit_max_requests = 600
+update_ratelimit_window_ms = 60000
+update_ratelimit_max_requests = 5
