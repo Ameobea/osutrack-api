@@ -139,7 +139,7 @@ const invalidLimit = (res: Response<any>) =>
     );
 
 export const initExpress = (pool: mysql.Pool) => {
-  const { dbRateLimiter, updateRateLimiter } = buildRateLimiters(CONF);
+  const { dbRateLimiter, updateRateLimiter, hiscoresRateLimiter } = buildRateLimiters(CONF);
 
   const app = express();
   app.set('trust proxy', 1);
@@ -209,7 +209,7 @@ export const initExpress = (pool: mysql.Pool) => {
     }
   });
 
-  app.get('/hiscores', updateRateLimiter, async (req, res) => {
+  app.get('/hiscores', hiscoresRateLimiter, async (req, res) => {
     const {
       user: rawUser,
       mode: gameMode,

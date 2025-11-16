@@ -18,6 +18,8 @@ interface RateLimitConf {
   db_ratelimit_max_requests: number;
   update_ratelimit_window_ms: number;
   update_ratelimit_max_requests: number;
+  hiscores_ratelimit_window_ms: number;
+  hiscores_ratelimit_max_requests: number;
 }
 
 export interface Conf {

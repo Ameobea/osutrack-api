@@ -27,5 +27,12 @@ export const buildRateLimiters = (CONF: Conf) => {
     skip: skipIfBathbot,
   });
 
-  return { dbRateLimiter, updateRateLimiter };
+  const hiscoresRateLimiter = rateLimit({
+    windowMs: CONF.rate_limit?.hiscores_ratelimit_window_ms ?? 60 * 1000,
+    max: CONF.rate_limit?.hiscores_ratelimit_max_requests ?? 20,
+    keyGenerator: getIp,
+    skip: skipIfBathbot,
+  });
+
+  return { dbRateLimiter, updateRateLimiter, hiscoresRateLimiter };
 };
