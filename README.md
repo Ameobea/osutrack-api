@@ -225,3 +225,79 @@ If user not found or no updates exist for the user, returns:
   }
 ]
 ```
+
+### Get ranked matchmaking (Quick Play) history for a user
+
+`GET https://osutrack-api.ameo.dev/matchmaking_history?user={user}&mode={mode}&pool_id={pool_id}&from={from}&to={to}`
+
+*Rate limit class: **Database** (600 requests/minute)*
+
+* `user` is the user ID of the user for which to retrieve matchmaking snapshots
+* `mode` is the gamemode you'd like to retrieve snapshots for; 0=osu!, 1=taiko, 2=ctb, 3=mania
+* `pool_id` is optional. If provided, only rows for that pool are returned. If omitted, snapshots for every pool the user has played in the given mode are returned. Pool IDs can be discovered via `/matchmaking_pools`.
+* `from` is optional, but if provided it is the start date of snapshots you'd like to retrieve in the format `YYYY-MM-DD` like `2026-01-01`
+* `to` is optional, but if provided it is the end date of snapshots you'd like to retrieve in the format `YYYY-MM-DD` like `2027-01-01`
+
+Snapshots are recorded any time a user is updated (e.g. by visiting their osu!track page or hitting `/update`). Identical consecutive snapshots are deduplicated, so the row count reflects when stats actually changed rather than when the user was checked.
+
+#### Returns
+
+If successful, returns an array of matchmaking snapshots in ascending timestamp order:
+
+```
+[
+  {
+    "pool_id": 38,
+    "rating": 1914,
+    "rank": 498,
+    "plays": 7,
+    "first_placements": 0,
+    "total_points": 0,
+    "is_rating_provisional": 0,
+    "timestamp": "2026-04-19T06:18:37.000Z"
+  }
+]
+```
+
+* `rating` is the player's current Elo-equivalent rating in the pool
+* `rank` is the player's rank within the pool
+* `plays` is the number of matches the player has completed in the pool
+* `first_placements` is the number of times the player finished first in the pool
+* `total_points` is the player's accumulated points in the pool
+* `is_rating_provisional` is 1 while the rating is still considered provisional (typically while `plays` is below the pool's threshold), 0 otherwise
+
+### List ranked matchmaking pools
+
+`GET https://osutrack-api.ameo.dev/matchmaking_pools`
+
+*Rate limit class: **Database** (600 requests/minute)*
+
+Returns the list of every matchmaking pool osu!track has observed at least once. Pools rotate over time (e.g. weekly Quick Play seasons), so historical pools are kept around for charting older snapshots.
+
+#### Returns
+
+```
+[
+  {
+    "id": 1,
+    "name": "osu!",
+    "ruleset_id": 0,
+    "variant_id": 0,
+    "active": 0,
+    "last_seen": "2026-04-19T06:54:58.000Z"
+  },
+  {
+    "id": 11,
+    "name": "1v1 (Week 1)",
+    "ruleset_id": 0,
+    "variant_id": 0,
+    "active": 0,
+    "last_seen": "2026-04-19T06:54:53.000Z"
+  }
+]
+```
+
+* `ruleset_id` is the gamemode the pool is for; 0=osu!, 1=taiko, 2=ctb, 3=mania
+* `variant_id` distinguishes pool variants for rulesets that have them (e.g. mania 4k vs 7k); may be 0 if not applicable
+* `active` is 1 if the pool is currently accepting matches, 0 otherwise
+* `last_seen` is the most recent time osu!track observed any user holding stats in this pool

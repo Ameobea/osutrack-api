@@ -359,6 +359,76 @@ export const initExpress = (pool: mysql.Pool) => {
     }
   });
 
+  app.get('/matchmaking_history', dbRateLimiter, async (req, res) => {
+    const {
+      user: rawUserID,
+      mode,
+      pool_id: rawPoolID,
+      from: rawFrom,
+      to: rawTo,
+    } = req.query;
+
+    const parsedUserID = validateUser(rawUserID);
+    if (!parsedUserID) {
+      return invalidUser(res);
+    }
+    const parsedMode = validateMode(mode);
+    if (parsedMode === undefined) {
+      return invalidMode(res);
+    }
+
+    let parsedPoolID: number | undefined = undefined;
+    if (rawPoolID !== undefined) {
+      if (typeof rawPoolID !== 'string') {
+        return res.status(400).json({ error: 'invalid pool_id' });
+      }
+      const n = +rawPoolID;
+      if (!Number.isInteger(n) || n <= 0) {
+        return res.status(400).json({ error: 'invalid pool_id' });
+      }
+      parsedPoolID = n;
+    }
+
+    const from = validateDate(rawFrom);
+    const to = validateDate(rawTo);
+
+    try {
+      const baseSQL =
+        'SELECT pool_id, rating, `rank`, plays, first_placements, total_points, is_rating_provisional, timestamp FROM `matchmaking_updates` WHERE `mode` = ? AND user = ? AND `timestamp` >= ? AND `timestamp` <= ?';
+      const params: any[] = [
+        parsedMode,
+        parsedUserID,
+        from ?? new Date('2000-01-01'),
+        to ?? new Date('2800-01-01'),
+      ];
+      let sql = baseSQL;
+      if (parsedPoolID !== undefined) {
+        sql += ' AND pool_id = ?';
+        params.push(parsedPoolID);
+      }
+      sql += ' ORDER BY `timestamp` ASC';
+      const queryRes = await query<any>(pool, sql, params);
+      res.status(200).json(queryRes);
+    } catch (err) {
+      console.error('DB error: ', err);
+      res.sendStatus(500);
+    }
+  });
+
+  app.get('/matchmaking_pools', dbRateLimiter, async (_req, res) => {
+    try {
+      const queryRes = await query<any>(
+        pool,
+        'SELECT id, name, ruleset_id, variant_id, active, last_seen FROM `matchmaking_pools` ORDER BY id ASC',
+        []
+      );
+      res.status(200).json(queryRes);
+    } catch (err) {
+      console.error('DB error: ', err);
+      res.sendStatus(500);
+    }
+  });
+
   app.listen(CONF.webserver.port, () => {
     console.log('Webserver listening on port ' + CONF.webserver.port);
   });
